@@ -92,7 +92,7 @@ Default All view, mixed read / new state:
 
 ![All mixed](frontend-tracks/notification_app_fe/screenshot-all.jpg)
 
-A short demo video covering desktop + mobile views is at `notification_app_fe/demo.mp4`.
+
 
 ---
 
