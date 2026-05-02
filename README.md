@@ -52,11 +52,11 @@ $env:SIMULATE_STREAM="true"; node app.js
 
 Initial top-10 from the live feed:
 
-![Top 10](notification_app_be/screenshot-top10.jpg)
+![Top 10](frontend-tracks/notification_app_be/screenshot-top10.jpg)
 
 Streaming demo — same heap absorbing simulated new arrivals, recomputing the top-10 in O(log N) per insert:
 
-![Stream](notification_app_be/screenshot-stream.jpg)
+![Stream](frontend-tracks/notification_app_be/screenshot-stream.jpg)
 
 ---
 
@@ -82,15 +82,15 @@ npm start                 # http://localhost:3000
 
 Priority Inbox with the Top-N selector open:
 
-![Priority](notification_app_fe/screenshot-priority.png)
+![Priority](frontend-tracks/notification_app_fe/screenshot-priority.png)
 
 All Notifications filtered by Result, NEW chips on unseen cards:
 
-![All filtered](notification_app_fe/screenshot-all-result.png)
+![All filtered](frontend-tracks/notification_app_fe/screenshot-all-result.png)
 
 Default All view, mixed read / new state:
 
-![All mixed](notification_app_fe/screenshot-all.jpg)
+![All mixed](frontend-tracks/notification_app_fe/screenshot-all.jpg)
 
 A short demo video covering desktop + mobile views is at `notification_app_fe/demo.mp4`.
 
