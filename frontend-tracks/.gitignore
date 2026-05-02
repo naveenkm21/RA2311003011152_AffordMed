@@ -53,3 +53,5 @@ temp/
 # package-lock.json
 # yarn.lock
 credentials.json
+.env.local
+notification_app_fe/.env.local

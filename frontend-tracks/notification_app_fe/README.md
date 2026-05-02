@@ -1,273 +1,34 @@
-# Notification App - Frontend
+# Notification Frontend (Stage 2)
 
-Real-time notification UI for AffordMed platform built with React. Displays notifications, manages preferences, and provides notification center.
+Responsive React + Material UI app for the AffordMed campus notifications platform. Runs on **http://localhost:3000** only.
 
-## Features
+## Pages
+- **/** — All Notifications. Filter by type (All / Placement / Result / Event), paginate, mark read.
+- **/priority** — Priority Inbox. Top-N selector (10/15/20/50), same filters, ranked by `Placement > Result > Event` then recency.
 
-- ✅ Real-time notification display
-- ✅ Notification center with history
-- ✅ Toast notifications
-- ✅ Unread count badge
-- ✅ Notification preferences panel
-- ✅ Search and filter notifications
-- ✅ Mark as read/unread
-- ✅ Delete notifications
-- ✅ WebSocket integration
+## Viewed vs. New
+Viewed IDs persist in `localStorage` under `affordmed:viewed-notifications`. Unviewed cards show a `NEW` chip + amber background; the AppBar shows a global unread count. Hover/click marks a card viewed; **Mark read** marks the visible page.
 
-## Project Structure
+## Logging
+All significant events (page load, fetch result, errors) go through the shared `Log()` client (`src/lib/log.js`) which POSTs to `/evaluation-service/logs` via the Vite dev proxy with the bearer token. Server caps `message` at 48 chars — the client truncates.
 
-```
-notification_app_fe/
-├── src/
-│   ├── components/
-│   │   ├── NotificationBell.jsx
-│   │   ├── NotificationCenter.jsx
-│   │   ├── NotificationToast.jsx
-│   │   ├── NotificationPreferences.jsx
-│   │   └── NotificationItem.jsx
-│   ├── hooks/
-│   │   ├── useNotifications.js
-│   │   ├── useWebSocket.js
-│   │   └── useNotificationPreferences.js
-│   ├── services/
-│   │   ├── notificationApi.js
-│   │   ├── socketService.js
-│   │   └── mockNotifications.js
-│   ├── store/
-│   │   ├── notificationSlice.js
-│   │   ├── preferencesSlice.js
-│   │   └── store.js
-│   ├── styles/
-│   │   ├── notifications.css
-│   │   ├── notificationCenter.css
-│   │   └── preferences.css
-│   ├── App.jsx
-│   └── index.js
-├── package.json
-└── README.md
-```
-
-## Installation
+## Run
 
 ```bash
+cp .env.example .env.local
+# edit .env.local — paste the bearer token from the eval /auth response
 npm install
-```
-
-## Environment Variables
-
-```env
-REACT_APP_API_URL=http://localhost:5000/api
-REACT_APP_SOCKET_URL=http://localhost:5000
-```
-
-## Running
-
-```bash
-# Development
 npm start
-
-# Build
-npm run build
-
-# Test
-npm test
 ```
 
-## Components
+Open http://localhost:3000.
 
-### NotificationBell
-- Shows unread count
-- Opens notification dropdown
-- Shows recent notifications preview
-- Mark all as read button
+The Vite dev server proxies `/api/*` -> `http://20.207.122.201/*` and injects the `Authorization: Bearer <token>` header from `VITE_AUTH_TOKEN`. This sidesteps browser CORS and keeps the token out of the page bundle.
 
-### NotificationCenter
-- Full notification history
-- Search and filter
-- Pagination
-- Mark as read/unread
-- Delete individual notifications
-- Clear all notifications
+## API params used
+- `limit` — page size (All) / wide fetch window (Priority)
+- `page` — pagination on the All page
+- `notification_type` — `Placement` / `Result` / `Event` (omitted for All)
 
-### NotificationToast
-- Auto-dismiss toasts
-- Different styles (success, error, info, warning)
-- Action buttons
-- Close button
-- Stack management
-
-### NotificationPreferences
-- Toggle notification types
-- Channel selection
-- Frequency settings
-- Quiet hours configuration
-- Save preferences button
-
-### NotificationItem
-- Notification content display
-- Action buttons
-- Timestamp
-- Read/unread indicator
-- Delete button
-
-## Custom Hooks
-
-### useNotifications
-Manages notification state and operations
-```javascript
-const { 
-  notifications, 
-  unreadCount, 
-  markAsRead, 
-  deleteNotification,
-  clearAll 
-} = useNotifications();
-```
-
-### useWebSocket
-Handles WebSocket connections
-```javascript
-const { 
-  connected, 
-  events, 
-  emit 
-} = useWebSocket('http://localhost:5000');
-```
-
-### useNotificationPreferences
-Manages user preferences
-```javascript
-const { 
-  preferences, 
-  updatePreferences, 
-  loading 
-} = useNotificationPreferences();
-```
-
-## Integration
-
-### With Redux
-```javascript
-import { useSelector, useDispatch } from 'react-redux';
-import { setNotifications } from './store/notificationSlice';
-
-function App() {
-  const dispatch = useDispatch();
-  const notifications = useSelector(state => state.notifications);
-  
-  // ...
-}
-```
-
-### With Context
-```javascript
-import { NotificationProvider, useNotification } from './context/NotificationContext';
-
-function App() {
-  return (
-    <NotificationProvider>
-      <YourComponent />
-    </NotificationProvider>
-  );
-}
-```
-
-## Styling
-
-### CSS Variables
-```css
---notification-bg: #ffffff;
---notification-border: #e5e7eb;
---notification-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
---unread-bg: #f0f9ff;
---primary-color: #2563eb;
-```
-
-### Responsive Design
-- Mobile optimized
-- Tablet layout
-- Desktop layout
-- Dark mode support
-
-## API Integration
-
-### Notification Endpoints
-- `GET /api/notifications` - Get notifications
-- `PUT /api/notifications/:id/read` - Mark as read
-- `DELETE /api/notifications/:id` - Delete
-- `PUT /api/notifications/mark-all-read` - Mark all as read
-
-### Preferences Endpoints
-- `GET /api/preferences` - Get preferences
-- `PUT /api/preferences` - Update preferences
-
-## WebSocket Events
-
-### Listen
-```javascript
-socket.on('notification:new', (data) => {
-  // Handle new notification
-});
-
-socket.on('notification:update', (data) => {
-  // Handle updated notification
-});
-```
-
-### Emit
-```javascript
-socket.emit('notification:read', notificationId);
-socket.emit('preferences:update', preferences);
-```
-
-## Performance Optimization
-
-- Lazy load notification center
-- Pagination for notifications
-- Virtual scrolling for large lists
-- Memoized components
-- Debounced search
-
-## Testing
-
-```bash
-npm test
-```
-
-### Test Coverage
-- Component rendering
-- User interactions
-- WebSocket events
-- API calls
-- State management
-
-## Deployment
-
-### Netlify
-```bash
-npm run build
-# Deploy build/ folder
-```
-
-### Vercel
-```bash
-vercel
-```
-
-## Browser Support
-
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-
-## Next Steps
-
-1. Create React components
-2. Set up WebSocket integration
-3. Implement API services
-4. Add Redux/Context state management
-5. Create styling
-6. Add notifications UI
-7. Implement preferences panel
-8. Test and optimize
+## Stack
+React 18, React Router v6, Material UI v5, Vite, Axios. No other CSS libraries.

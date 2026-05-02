@@ -507,3 +507,59 @@ AUTH_TOKEN=<bearer> TOP_N=15 node app.js
 
 ## Output
 See `OUTPUT_SCREENSHOTS.md` for screenshots of the top-10 inbox before and after a streaming round.
+
+---
+
+# Stage 2 — Frontend (React + MUI)
+
+## Goal
+Two responsive pages that consume the now-paginated notifications API and visually distinguish **new** from **already viewed** notifications.
+
+## Pages
+| Route | Purpose |
+|---|---|
+| `/`         | All notifications. Server-side type filter + pagination via `limit` & `page`. |
+| `/priority` | Top-N priority inbox. Type filter + N selector (10/15/20/50). |
+
+The priority page fetches a wide window (`limit=100`) and ranks **client-side** with the same scoring used in Stage 1 — so the user can flip N without a round trip and the ordering stays consistent with the backend even when the server returns more than N.
+
+## New vs. Viewed
+A `Set<ID>` is persisted in `localStorage` (`affordmed:viewed-notifications`).
+- Unviewed: `NEW` chip + amber background + bolder text.
+- Card transitions to "viewed" on `mouseenter` or click — feels less heavy-handed than a manual "mark read" button while still being explicit (Mark read button exists for bulk).
+- AppBar surfaces a global unread count via a 30s background poll, so the badge stays meaningful while the user sits on the Priority page.
+
+## API contract usage
+The endpoint now accepts `limit`, `page`, `notification_type`. The All page is genuinely paginated (`limit=20&page=N`); the Priority page passes `notification_type` for type filters and a generous `limit` for ranking. `notification_type=All` is intentionally **not** sent — backend filter is omitted in that case.
+
+## Auth & CORS
+`VITE_AUTH_TOKEN` is read by `vite.config.js` and injected into proxied requests as `Authorization: Bearer <token>`. The browser only ever talks to `localhost:3000/api/*`, so:
+- No CORS problems against the eval origin
+- The token never appears in the bundled JS or in DevTools network requests *as a static* — it lives only in the dev server process
+
+## Logging
+The frontend uses a thin `Log()` wrapper that POSTs to `/api/evaluation-service/logs` with `stack: "frontend"` and one of the allowed packages (`api`, `page`). Same 48-char message cap discovered in Stage 1. Logging failures are swallowed — UX must not depend on the eval log endpoint being up.
+
+## Folder
+All Stage-2 code lives in `notification_app_fe/`.
+
+## Run
+```
+cd notification_app_fe
+cp .env.example .env.local      # paste bearer token
+npm install
+npm start                        # http://localhost:3000
+```
+
+## Component map
+- `src/main.jsx`                — MUI theme + router root
+- `src/App.jsx`                 — route table + AppBar unread poll
+- `src/components/Layout.jsx`   — sticky AppBar with All / Priority tabs and unread chip
+- `src/components/NotificationCard.jsx` — type-coloured card, NEW indicator, rank chip
+- `src/components/Toolbar.jsx`  — type filter, top-N selector, refresh, mark-read
+- `src/pages/AllNotifications.jsx` — paginated list
+- `src/pages/PriorityInbox.jsx`    — top-N ranked list
+- `src/api/notifications.js`    — single fetch helper threading the new params
+- `src/lib/priority.js`         — pure scoring/sort (mirrors Stage-1 backend)
+- `src/lib/log.js`              — Log() / createLogger() — frontend stack
+- `src/hooks/useViewed.js`      — localStorage-backed viewed-set hook
